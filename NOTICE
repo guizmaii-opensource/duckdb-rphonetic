@@ -1,0 +1,13 @@
+duckdb-rphonetic
+Copyright 2026 Jules Ivanic
+
+This product includes software developed at
+The Apache Software Foundation (https://www.apache.org/).
+
+The phonetic algorithms are provided by the `rphonetic` crate
+(https://github.com/Dalvany/rphonetic, Apache License 2.0), which is a Rust
+port of the phonetic encoders in Apache Commons Codec
+(https://commons.apache.org/proper/commons-codec/, Apache License 2.0).
+
+test/corpus/names.txt includes test vectors from Apache Commons Codec's own
+unit tests.
