@@ -4,8 +4,9 @@
 //
 // The extension is built on the `rphonetic` crate, which is a Rust port of
 // these two encoders, so its output should agree with them. `test/oracle/run.sh`
-// regenerates the TSV; `test/sql/corpus.test` asserts the extension matches it,
-// with the known divergences listed in test/corpus/divergences.tsv.
+// regenerates the TSV; test/sql/commons_codec_corpus.test asserts the extension
+// matches it, with the known Cologne divergences listed in
+// test/corpus/cologne-divergences.tsv.
 //
 // Usage (Java 11+, single-file source launch):
 //   java -cp commons-codec-1.22.1.jar test/oracle/Oracle.java <names.txt> <out.tsv>
