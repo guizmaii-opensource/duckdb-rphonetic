@@ -5,3 +5,6 @@ configure
 duckdb_unittest_tempdir
 /test/bin
 venv
+# local review notes, not part of the project
+main_REVIEW.md
+*_REVIEW.md
