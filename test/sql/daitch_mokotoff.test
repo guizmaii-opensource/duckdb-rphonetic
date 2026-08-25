@@ -1,0 +1,141 @@
+# name: test/sql/daitch_mokotoff.test
+# description: daitch_mokotoff scalar function (Daitch-Mokotoff Soundex)
+# group: [rphonetic]
+
+# Before the extension is loaded the function does not exist.
+statement error
+SELECT daitch_mokotoff('x');
+----
+Catalog Error: Scalar Function with name daitch_mokotoff does not exist!
+
+require rphonetic
+
+# The return type is a list of codes, not a single code.
+query T
+SELECT typeof(daitch_mokotoff('Peters'));
+----
+VARCHAR[]
+
+# An unambiguous name yields one code.
+query T
+SELECT daitch_mokotoff(col0) FROM values ('Moskowitz'), ('Moskovitz'), ('Müller'), ('Mueller') as v;
+----
+[645740]
+[645740]
+[689000]
+[689000]
+
+# An ambiguous spelling yields several. This is the whole point of the
+# algorithm: 'Peters' may be read with either a /ts/ or a /s/ ending.
+query T
+SELECT daitch_mokotoff('Peters');
+----
+[734000, 739400]
+
+# Branching can multiply: 'Rosochowaciec' has four ambiguous positions.
+query III
+SELECT len(d), d[1], d[8] FROM (SELECT daitch_mokotoff('Rosochowaciec') AS d);
+----
+8	944744	945755
+
+# --- Overlap matching -------------------------------------------------------
+# Two names "match" when their code lists share at least one element. This is
+# the DuckDB equivalent of matching Postgres text[] columns with &&.
+query T
+SELECT list_has_any(daitch_mokotoff('Moskowitz'), daitch_mokotoff('Moskovitz'));
+----
+true
+
+query T
+SELECT list_has_any(daitch_mokotoff('Auerbach'), daitch_mokotoff('Ohrbach'));
+----
+true
+
+# Unrelated names do not match.
+query T
+SELECT list_has_any(daitch_mokotoff('Peters'), daitch_mokotoff('Fischer'));
+----
+false
+
+# Matching on the first code alone would miss Schwarz/Schwartz: the codes only
+# agree on Schwarz's *second* branch. This is exactly why the function returns
+# a list rather than a single code.
+query TT
+SELECT daitch_mokotoff('Schwarz'), daitch_mokotoff('Schwartz');
+----
+[474000, 479400]	[479400]
+
+query T
+SELECT daitch_mokotoff('Schwarz')[1] = daitch_mokotoff('Schwartz')[1];
+----
+false
+
+query T
+SELECT list_has_any(daitch_mokotoff('Schwarz'), daitch_mokotoff('Schwartz'));
+----
+true
+
+# --- Deduplication ----------------------------------------------------------
+# Separators can make rphonetic emit the same code from more than one branch.
+# The list is deduplicated so it behaves as the set that overlap matching
+# assumes, matching Apache Commons Codec's soundex() output.
+query TT
+SELECT daitch_mokotoff('Bergisch-Gladbach'), daitch_mokotoff('mönchengladbach');
+----
+[795458]	[664658, 665658]
+
+# --- Degenerate input -------------------------------------------------------
+# Input with no encodable letter still produces one all-zero code (the same as
+# Commons Codec), not an empty list and not NULL.
+query T
+SELECT daitch_mokotoff(col0) FROM values (''), ('123'), ('!!!'), ('🦆') as v;
+----
+[000000]
+[000000]
+[000000]
+[000000]
+
+# Very long input still yields a single code of the fixed width.
+query II
+SELECT len(d), length(d[1]) FROM (SELECT daitch_mokotoff(repeat('Müller', 1000)) AS d);
+----
+1	6
+
+# --- NULL semantics ---------------------------------------------------------
+# NULL in, NULL out - distinct from the empty-input case above.
+query T
+SELECT daitch_mokotoff(NULL);
+----
+NULL
+
+# A NULL arriving inside a regular data chunk must be masked by the function.
+query T
+SELECT daitch_mokotoff(s) FROM (VALUES (1, 'Peters'), (2, NULL), (3, 'Müller')) v(i, s) ORDER BY i;
+----
+[734000, 739400]
+NULL
+[689000]
+
+# --- Binder -----------------------------------------------------------------
+statement error
+SELECT daitch_mokotoff();
+----
+Binder Error
+
+statement error
+SELECT daitch_mokotoff(42, 42);
+----
+Binder Error
+
+# --- Multiple data chunks (STANDARD_VECTOR_SIZE = 2048) ---------------------
+# 3000 rows spans two chunks. The list child vector is reserved and written per
+# chunk, so a wrong offset here would corrupt or misalign the lists. Summing
+# the list lengths pins the total child element count as well as the values.
+query III
+SELECT count(*) FILTER (WHERE d IS NULL), count(DISTINCT d), sum(len(d))
+FROM (
+  SELECT daitch_mokotoff(CASE WHEN i % 3 = 0 THEN NULL ELSE chr((97 + i % 26)::INT) || 'meier' END) AS d
+  FROM range(3000) t(i)
+);
+----
+1000	12	2155

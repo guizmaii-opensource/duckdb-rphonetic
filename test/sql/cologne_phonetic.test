@@ -1,0 +1,128 @@
+# name: test/sql/cologne_phonetic.test
+# description: cologne_phonetic scalar function (Kölner Phonetik)
+# group: [rphonetic]
+
+# Before the extension is loaded the function does not exist.
+statement error
+SELECT cologne_phonetic('x');
+----
+Catalog Error: Scalar Function with name cologne_phonetic does not exist!
+
+require rphonetic
+
+# Published reference vectors.
+query T
+SELECT cologne_phonetic(col0) FROM values ('Müller-Lüdenscheidt'), ('Wikipedia'), ('Breschnew') as v;
+----
+65752682
+3412
+17863
+
+query T
+SELECT cologne_phonetic(col0) FROM values ('müller'), ('Meier'), ('Mayr'), ('Schmidt'), ('Fischer') as v;
+----
+657
+67
+67
+862
+387
+
+# Case is irrelevant: the encoder upper-cases first.
+query T
+SELECT DISTINCT cologne_phonetic(col0) FROM values ('müller'), ('Müller'), ('MÜLLER'), ('MüLLeR') as v;
+----
+657
+
+# Umlauts fold to their base vowel, so all three encode as the vowel code 0.
+query III
+SELECT cologne_phonetic('ä'), cologne_phonetic('ö'), cologne_phonetic('ü');
+----
+0	0	0
+
+# ß is treated as an s-sound.
+query III
+SELECT cologne_phonetic('ß'), cologne_phonetic('Straße'), cologne_phonetic('Strasse');
+----
+8	8278	8278
+
+# Hyphenated names: the separator is skipped, the parts encode as one run.
+query T
+SELECT cologne_phonetic('Bergisch-Gladbach');
+----
+174845214
+
+# --- Dedupe behaviour -------------------------------------------------------
+# This build follows rphonetic: consecutive identical raw codes are collapsed,
+# and only afterwards are the 0 codes dropped. A dropped 0 therefore keeps a
+# run of identical digits apart. Apache Commons Codec suppresses a code equal
+# to the last *emitted* code instead and returns 27 / 4 / 6 here.
+# See the README section "Cologne dedupe behaviour".
+query III
+SELECT cologne_phonetic('Dieter'), cologne_phonetic('Koch'), cologne_phonetic('Mannheim');
+----
+227	44	666
+
+# --- Degenerate input -------------------------------------------------------
+# Input with no encodable letter yields the empty string, not NULL. Bracketed so
+# sqllogictest does not have to compare a bare empty field.
+query T
+SELECT '[' || cologne_phonetic(col0) || ']' FROM values (''), ('123'), ('!!!'), ('🦆'), ('h') as v;
+----
+[]
+[]
+[]
+[]
+[]
+
+# Very long input is handled without truncation.
+query II
+SELECT length(cologne_phonetic(repeat('Müller', 1000))), cologne_phonetic(repeat('Müller', 1000))[1:6];
+----
+3000	657657
+
+# --- NULL semantics ---------------------------------------------------------
+# NULL in, NULL out - the same as DuckDB's built-in soundex().
+# Constant NULL is folded by the optimizer.
+query T
+SELECT cologne_phonetic(NULL);
+----
+NULL
+
+# A NULL arriving inside a regular data chunk must be masked by the function.
+query T
+SELECT cologne_phonetic(s) FROM (VALUES (1, 'Meier'), (2, NULL), (3, 'Mayr')) v(i, s) ORDER BY i;
+----
+67
+NULL
+67
+
+# --- Binder -----------------------------------------------------------------
+statement error
+SELECT cologne_phonetic();
+----
+Binder Error
+
+statement error
+SELECT cologne_phonetic(42, 42);
+----
+Binder Error
+
+# --- Multiple data chunks (STANDARD_VECTOR_SIZE = 2048) ---------------------
+# 3000 rows spans two chunks, so a function that indexed rows against the wrong
+# chunk offset would show up here. 26 distinct inputs collapse to 10 codes.
+query II
+SELECT count(*), count(DISTINCT cologne_phonetic(chr((97 + i % 26)::INT) || 'meier'))
+FROM range(3000) t(i);
+----
+3000	10
+
+# The same, with a NULL in every third row, so the validity mask is exercised
+# in both chunks rather than only in the first.
+query II
+SELECT count(*) FILTER (WHERE c IS NULL), count(DISTINCT c)
+FROM (
+  SELECT cologne_phonetic(CASE WHEN i % 3 = 0 THEN NULL ELSE chr((97 + i % 26)::INT) || 'meier' END) AS c
+  FROM range(3000) t(i)
+);
+----
+1000	10
