@@ -25,7 +25,8 @@ use duckdb::{
 use rphonetic_lib::{Cologne, DaitchMokotoffSoundex, Encoder};
 
 /// Parsing the Daitch-Mokotoff rule set is not free, so do it once per process.
-static DAITCH_MOKOTOFF: LazyLock<DaitchMokotoffSoundex> = LazyLock::new(DaitchMokotoffSoundex::default);
+static DAITCH_MOKOTOFF: LazyLock<DaitchMokotoffSoundex> =
+    LazyLock::new(DaitchMokotoffSoundex::default);
 
 /// Daitch-Mokotoff codes are consumed as a *set* (two names match when their
 /// code lists overlap), so a branch that produces a code already in the list
@@ -119,7 +120,10 @@ impl VScalar for DaitchMokotoff {
                     .map(|value| dedupe(DAITCH_MOKOTOFF.inner_soundex(value, true)))
             })
             .collect();
-        let total: usize = encoded.iter().map(|codes| codes.as_ref().map_or(0, Vec::len)).sum();
+        let total: usize = encoded
+            .iter()
+            .map(|codes| codes.as_ref().map_or(0, Vec::len))
+            .sum();
 
         let mut list = output.list_vector();
         // `child` panics on a rejected reserve; reserving at least one element
