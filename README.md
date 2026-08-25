@@ -95,9 +95,9 @@ JOIN watchlist b
   ON list_has_any(daitch_mokotoff(a.name), daitch_mokotoff(b.name));
 ```
 
-For anything larger than a toy table, precompute the codes and index them.
-DuckDB cannot use an index for `list_has_any`, so unnest the codes and join on
-equality instead:
+That join does not scale: `list_has_any(a, b)` is not an equality, so the
+planner cannot hash-join on it and falls back to comparing every pair of rows.
+Unnest the codes instead and join on equality, which does hash-join:
 
 ```sql
 CREATE TABLE people_codes AS

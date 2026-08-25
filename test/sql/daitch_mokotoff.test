@@ -139,3 +139,32 @@ FROM (
 );
 ----
 1000	12	2155
+
+# An all-NULL chunk makes the total child element count zero, so the list child
+# vector is reserved but never written and its length is set to 0. That is the
+# one degenerate case in the two-pass write, so exercise it on its own.
+statement ok
+CREATE TABLE all_null AS SELECT NULL::VARCHAR AS s FROM range(3000);
+
+query II
+SELECT count(*), count(daitch_mokotoff(s)) FROM all_null;
+----
+3000	0
+
+# The same, but arranged so the first chunk is entirely NULL and the second is
+# not: a zero-length reservation must not disturb the chunk that follows.
+statement ok
+CREATE TABLE null_then_values AS
+SELECT CASE WHEN i < 2048 THEN NULL ELSE 'Peters' END AS s FROM range(4096) t(i);
+
+query III
+SELECT count(*) FILTER (WHERE d IS NULL), count(DISTINCT d), max(d)
+FROM (SELECT daitch_mokotoff(s) AS d FROM null_then_values);
+----
+2048	1	[734000, 739400]
+
+# An empty input relation must not fault either.
+query II
+SELECT count(*), count(daitch_mokotoff(s)) FROM all_null WHERE false;
+----
+0	0
