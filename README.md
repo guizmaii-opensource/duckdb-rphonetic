@@ -12,6 +12,10 @@ names:
 | `cologne_phonetic(VARCHAR)` | `VARCHAR` | Kölner Phonetik (Cologne phonetics) |
 | `daitch_mokotoff(VARCHAR)` | `LIST(VARCHAR)` | Daitch-Mokotoff Soundex |
 
+> **Naming.** The extension is `duckdb_rphonetic`; the crate it wraps is
+> [`rphonetic`](https://crates.io/crates/rphonetic) by Dalvany. The prefix is
+> deliberate — the plain name belongs to the upstream author, not to this wrapper.
+
 Both are provided by the [`rphonetic`](https://crates.io/crates/rphonetic)
 crate, a Rust port of the phonetic encoders in
 [Apache Commons Codec](https://commons.apache.org/proper/commons-codec/).
@@ -21,8 +25,8 @@ crate, a Rust port of the phonetic encoders in
 Once the extension is accepted into the DuckDB community repository:
 
 ```sql
-INSTALL rphonetic FROM community;
-LOAD rphonetic;
+INSTALL duckdb_rphonetic FROM community;
+LOAD duckdb_rphonetic;
 ```
 
 Until then, build it yourself — see [Building](#building).
@@ -184,14 +188,14 @@ make debug        # or: make release
 make test
 ```
 
-The extension lands in `build/debug/rphonetic.duckdb_extension`. To load an
+The extension lands in `build/debug/duckdb_rphonetic.duckdb_extension`. To load an
 unsigned local build:
 
 ```sh
 duckdb -unsigned
 ```
 ```sql
-LOAD 'build/debug/rphonetic.duckdb_extension';
+LOAD 'build/debug/duckdb_rphonetic.duckdb_extension';
 ```
 
 ### Regenerating the Commons Codec oracle

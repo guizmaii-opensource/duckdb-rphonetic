@@ -22,7 +22,7 @@ use duckdb::{
     vscalar::{ScalarFunctionSignature, VScalar},
     vtab::arrow::WritableVector,
 };
-use rphonetic_lib::{Cologne, DaitchMokotoffSoundex, Encoder};
+use rphonetic::{Cologne, DaitchMokotoffSoundex, Encoder};
 
 /// Parsing the Daitch-Mokotoff rule set is not free, so do it once per process.
 static DAITCH_MOKOTOFF: LazyLock<DaitchMokotoffSoundex> =

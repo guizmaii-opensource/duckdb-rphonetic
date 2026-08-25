@@ -1,6 +1,6 @@
 # name: test/sql/cologne_phonetic.test
 # description: cologne_phonetic scalar function (Kölner Phonetik)
-# group: [rphonetic]
+# group: [duckdb_rphonetic]
 
 # Before the extension is loaded the function does not exist.
 statement error
@@ -8,7 +8,7 @@ SELECT cologne_phonetic('x');
 ----
 Catalog Error: Scalar Function with name cologne_phonetic does not exist!
 
-require rphonetic
+require duckdb_rphonetic
 
 # Published reference vectors.
 query T

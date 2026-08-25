@@ -1,6 +1,6 @@
 # name: test/sql/daitch_mokotoff.test
 # description: daitch_mokotoff scalar function (Daitch-Mokotoff Soundex)
-# group: [rphonetic]
+# group: [duckdb_rphonetic]
 
 # Before the extension is loaded the function does not exist.
 statement error
@@ -8,7 +8,7 @@ SELECT daitch_mokotoff('x');
 ----
 Catalog Error: Scalar Function with name daitch_mokotoff does not exist!
 
-require rphonetic
+require duckdb_rphonetic
 
 # The return type is a list of codes, not a single code.
 query T

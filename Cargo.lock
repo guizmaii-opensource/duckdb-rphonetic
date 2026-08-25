@@ -451,6 +451,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "duckdb_rphonetic"
+version = "0.1.0"
+dependencies = [
+ "duckdb",
+ "rphonetic",
+]
+
+[[package]]
 name = "either"
 version = "1.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1061,14 +1069,6 @@ dependencies = [
  "libc",
  "untrusted",
  "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "rphonetic"
-version = "0.1.0"
-dependencies = [
- "duckdb",
- "rphonetic 3.1.0",
 ]
 
 [[package]]
