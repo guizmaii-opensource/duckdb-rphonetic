@@ -1,4 +1,4 @@
-# duckdb-rphonetic
+# duckdb_rphonetic
 
 A DuckDB extension for **phonetic name matching** — finding names that *sound*
 alike despite being spelled differently.
@@ -181,8 +181,8 @@ Cologne output is passed through unmodified.
 Requires Rust, Python 3, and `make`.
 
 ```sh
-git clone --recurse-submodules https://github.com/guizmaii-opensource/duckdb-rphonetic
-cd duckdb-rphonetic
+git clone --recurse-submodules https://github.com/guizmaii-opensource/duckdb_rphonetic
+cd duckdb_rphonetic
 make configure
 make debug        # or: make release
 make test

@@ -6,7 +6,7 @@ edition = "2024"
 rust-version = "1.85"
 license = "Apache-2.0"
 description = "DuckDB extension exposing phonetic matching algorithms (Kölner Phonetik, Daitch-Mokotoff Soundex)"
-repository = "https://github.com/guizmaii-opensource/duckdb-rphonetic"
+repository = "https://github.com/guizmaii-opensource/duckdb_rphonetic"
 
 [lib]
 crate-type = ["cdylib"]
