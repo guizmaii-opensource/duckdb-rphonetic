@@ -2,6 +2,8 @@
 name = "duckdb_rphonetic"
 version = "0.1.0"
 edition = "2024"
+# Edition 2024 stabilised in Rust 1.85; declare it so an older toolchain fails clearly.
+rust-version = "1.85"
 license = "Apache-2.0"
 description = "DuckDB extension exposing phonetic matching algorithms (Kölner Phonetik, Daitch-Mokotoff Soundex)"
 repository = "https://github.com/guizmaii-opensource/duckdb-rphonetic"
