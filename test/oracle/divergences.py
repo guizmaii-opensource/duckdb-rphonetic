@@ -18,7 +18,7 @@ import duckdb
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 CORPUS = ROOT / "test" / "corpus"
-EXTENSION = ROOT / "build" / "debug" / "rphonetic.duckdb_extension"
+EXTENSION = ROOT / "build" / "debug" / "duckdb_rphonetic.duckdb_extension"
 
 
 def main() -> int:
