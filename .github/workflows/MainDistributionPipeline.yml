@@ -22,3 +22,24 @@ jobs:
       extension_name: duckdb_rphonetic
       extra_toolchains: rust;python3
       exclude_archs: 'linux_amd64_musl'
+
+  # The distribution pipeline above only runs the sqllogictests on macOS and Windows: DuckDB's
+  # shared Makefile forces SKIP_TESTS=1 on every Linux platform. This job runs them on Linux.
+  test-linux:
+    name: Run sqllogictests on Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # DUCKDB_TEST_VERSION must match TARGET_DUCKDB_VERSION in the Makefile: the extension is
+      # built against the unstable C API, so it only loads in that exact DuckDB version.
+      - name: Configure, build and test
+        run: |
+          make configure DUCKDB_TEST_VERSION=1.5.5
+          make release
+          make test_release SKIP_TESTS=0

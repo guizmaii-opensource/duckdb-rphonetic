@@ -26,4 +26,4 @@ crate-type = ["staticlib"]
 
 [dependencies]
 duckdb = { version = "~1.10505.0", features = ["loadable-extension", "vscalar"] }
-rphonetic = { version = "3.1.0", features = ["embedded_dm"] }
+rphonetic = { version = "4.0.0", features = ["embedded_dm"] }

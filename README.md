@@ -145,9 +145,14 @@ Take `Dieter`. The raw codes are `D`→2, `I`→0, `E`→0, `T`→2, `E`→0, `R
 Commons Codec produces `27`.
 
 Mechanically, `rphonetic`'s encoder tracks the last *candidate* code, including
-the `0`s and `H`s it goes on to drop, so a dropped code keeps a run of identical
-digits apart. Commons Codec tracks the last code it actually wrote, so a dropped
-code does not break the run.
+the `0`s it goes on to drop, so a dropped `0` keeps a run of identical digits
+apart. Commons Codec tracks the last code it actually wrote, so a dropped code
+does not break the run.
+
+`H` is different: it has no code at all, not even a `0`, so it never keeps a run
+apart. `Mülhler` is `657`, the same as `Müller`, and both implementations agree.
+(`rphonetic` before 4.0.0 treated `H` like a dropped `0` and gave `6557`; fixed in
+[Dalvany/rphonetic#85](https://github.com/Dalvany/rphonetic/pull/85).)
 
 This is not limited to `Dieter`. Over the 279-name corpus in `test/corpus/`, the
 two disagree on **36 names** — about 13%:

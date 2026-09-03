@@ -62,6 +62,13 @@ SELECT cologne_phonetic('Dieter'), cologne_phonetic('Koch'), cologne_phonetic('M
 ----
 227	44	666
 
+# H has no code at all, so unlike a dropped 0 it does not keep a run apart:
+# Mülhler collapses to 657 like Müller (rphonetic >= 4.0.0; 3.x gave 6557).
+query II
+SELECT cologne_phonetic('Mülhler'), cologne_phonetic('Mülhler') = cologne_phonetic('Müller');
+----
+657	true
+
 # --- Degenerate input -------------------------------------------------------
 # Input with no encodable letter yields the empty string, not NULL. Bracketed so
 # sqllogictest does not have to compare a bare empty field.
