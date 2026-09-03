@@ -183,6 +183,8 @@ Cologne output is passed through unmodified.
 
 ## Building
 
+Releasing a new version is described in [RELEASE.md](RELEASE.md).
+
 Requires Rust, Python 3, and `make`.
 
 ```sh
